@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Last Dungeon Lord</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Title Screen -->
+        <div id="title-screen" class="screen">
+            <h1>The Last Dungeon Lord</h1>
+            <p>Descend into the darkness...</p>
+            <button id="start-button">Enter the Dungeon</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen hidden">
+            <div id="ui-overlay">
+                <div class="stat">HP: <span id="hp-value">100</span></div>
+                <div class="stat">Gold: <span id="gold-value">0</span></div>
+                <div class="stat">Depth: <span id="depth-value">1</span></div>
+            </div>
+            <div id="dungeon-container"></div>
+            <div id="message-log"></div>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>
