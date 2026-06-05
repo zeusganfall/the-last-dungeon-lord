@@ -20,10 +20,22 @@
             <div id="ui-overlay">
                 <div class="stat">HP: <span id="hp-value">100</span></div>
                 <div class="stat">Gold: <span id="gold-value">0</span></div>
+                <div class="stat">Fear: <span id="fear-value">0</span></div>
+                <div class="stat">Rep: <span id="rep-value">0</span></div>
+                <div class="stat">Power: <span id="power-value">0</span></div>
                 <div class="stat">Depth: <span id="depth-value">1</span></div>
             </div>
             <div id="dungeon-container"></div>
             <div id="message-log"></div>
+
+            <!-- Event Modal -->
+            <div id="event-modal" class="modal hidden">
+                <div class="modal-content">
+                    <h2 id="event-title"></h2>
+                    <p id="event-description"></p>
+                    <div id="event-choices"></div>
+                </div>
+            </div>
         </div>
     </div>
     <script src="game.js"></script>
