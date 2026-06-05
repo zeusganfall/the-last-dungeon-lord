@@ -1,0 +1,166 @@
+:root {
+    --bg-color: #0a0a0a;
+    --text-color: #e0e0e0;
+    --accent-color: #ff4d4d;
+    --wall-color: #333;
+    --floor-color: #1a1a1a;
+    --player-color: #4d94ff;
+    --gold-color: #ffd700;
+    --fog-color: #000;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Courier New', Courier, monospace;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+}
+
+#game-container {
+    position: relative;
+    width: 800px;
+    height: 600px;
+    border: 2px solid var(--accent-color);
+    box-shadow: 0 0 20px var(--accent-color);
+}
+
+.screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.hidden {
+    display: none !important;
+}
+
+#title-screen h1 {
+    font-size: 3rem;
+    color: var(--accent-color);
+    text-shadow: 0 0 10px var(--accent-color);
+    margin-bottom: 0.5rem;
+}
+
+#title-screen button {
+    background: transparent;
+    border: 2px solid var(--accent-color);
+    color: var(--accent-color);
+    padding: 10px 20px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: inherit;
+}
+
+#title-screen button:hover {
+    background: var(--accent-color);
+    color: var(--bg-color);
+    box-shadow: 0 0 15px var(--accent-color);
+}
+
+#game-screen {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+#ui-overlay {
+    width: 100%;
+    height: 50px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.8);
+    border-bottom: 1px solid var(--accent-color);
+    z-index: 10;
+}
+
+.stat {
+    font-size: 1.2rem;
+}
+
+#dungeon-container {
+    flex-grow: 1;
+    width: 100%;
+    display: grid;
+    background-color: var(--bg-color);
+    position: relative;
+    overflow: hidden;
+}
+
+.tile {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.wall { background-color: var(--wall-color); }
+.floor { background-color: var(--floor-color); }
+
+.player {
+    width: 80%;
+    height: 80%;
+    background-color: var(--player-color);
+    box-shadow: 0 0 10px var(--player-color);
+    border-radius: 20%;
+}
+
+.gold {
+    width: 40%;
+    height: 40%;
+    background-color: var(--gold-color);
+    box-shadow: 0 0 8px var(--gold-color);
+    border-radius: 50%;
+}
+
+.exit {
+    width: 90%;
+    height: 90%;
+    background-color: #00ff00;
+    box-shadow: 0 0 15px #00ff00;
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+
+.trap {
+    width: 60%;
+    height: 60%;
+    background-color: #550000;
+    border: 1px solid #ff0000;
+    clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
+}
+
+.fog {
+    background-color: var(--fog-color);
+}
+
+.discovered {
+    opacity: 0.5;
+}
+
+#message-log {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+    height: 60px;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 5px;
+    font-size: 0.8rem;
+    overflow-y: auto;
+    pointer-events: none;
+}
