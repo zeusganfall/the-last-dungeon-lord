@@ -13,15 +13,75 @@ const TILE_TYPES = {
     TRAP: 4
 };
 
+const EVENTS = [
+    {
+        title: "Treasure Found",
+        description: "You stumble upon a dusty chest hidden under some debris.",
+        choices: [
+            { text: "Open it carefully", effect: { gold: 20, reputation: 1 }, log: "You found 20 gold and gained some fame." },
+            { text: "Smash it open", effect: { gold: 15, dungeonPower: 2 }, log: "The noise echoes through the halls, increasing dungeon power." },
+            { text: "Leave it alone", effect: { fear: -5 }, log: "You stay cautious and feel less afraid." }
+        ]
+    },
+    {
+        title: "Trapped Corridor",
+        description: "The floorboards creak suspiciously beneath your feet.",
+        choices: [
+            { text: "Check for wires", effect: { hp: -5, reputation: 2 }, log: "You avoid the worst but get a small scratch. Your skill is noted." },
+            { text: "Run through quickly", effect: { hp: -15, fear: 10 }, log: "You trigger the trap! It hurts, and your heart is racing." },
+            { text: "Wait and listen", effect: { dungeonPower: -1, fear: 5 }, log: "You avoid the trap and quiet the dungeon slightly." }
+        ]
+    },
+    {
+        title: "Wandering Spirit",
+        description: "A translucent figure floats before you, whispering forgotten secrets.",
+        choices: [
+            { text: "Listen to the secrets", effect: { fear: 15, reputation: 5 }, log: "The secrets are terrifying but valuable for your reputation." },
+            { text: "Offer a prayer", effect: { hp: 10, fear: -10 }, log: "The spirit blesses you before vanishing. You feel refreshed." },
+            { text: "Drive it away", effect: { dungeonPower: 5 }, log: "Your aggression fuels the dungeon's dark energy." }
+        ]
+    },
+    {
+        title: "Weak Enemy Encounter",
+        description: "A lone, starving goblin lunges at you from the shadows!",
+        choices: [
+            { text: "Fight it off", effect: { hp: -10, reputation: 3 }, log: "You defeat the goblin but take a few hits." },
+            { text: "Intimidate it", effect: { fear: 5, reputation: -2, dungeonPower: 5 }, log: "The goblin flees, but you feel the dungeon growing stronger." },
+            { text: "Bribe it", effect: { gold: -5, fear: -5 }, log: "The goblin takes your gold and leaves you in peace." }
+        ]
+    },
+    {
+        title: "Dark Shrine",
+        description: "An ancient altar pulses with a faint, malevolent purple light.",
+        choices: [
+            { text: "Make a sacrifice", effect: { hp: -20, dungeonPower: 10 }, log: "You offer your blood. The dungeon trembles with new power." },
+            { text: "Desecrate the altar", effect: { reputation: 10, fear: 20 }, log: "You destroy the shrine. You feel heroic but marked by evil." },
+            { text: "Observe from afar", effect: { fear: 5, dungeonPower: 2 }, log: "The shrine's energy seeps into the surroundings." }
+        ]
+    },
+    {
+        title: "Atmospheric Room",
+        description: "The air here is thick with the scent of damp stone and old bones. It's eerily quiet.",
+        choices: [
+            { text: "Rest for a moment", effect: { hp: 5, fear: -5 }, log: "A brief moment of peace in the dark." },
+            { text: "Search the walls", effect: { reputation: 1 }, log: "You find some ancient carvings and learn about the dungeon." }
+        ]
+    }
+];
+
 class Game {
     constructor() {
         this.state = {
             hp: 100,
             gold: 0,
+            fear: 0,
+            reputation: 0,
+            dungeonPower: 0,
             depth: 1,
             playerPos: { x: 0, y: 0 },
             map: [],
             visibility: [], // 0: hidden, 1: discovered, 2: visible
+            visited: [], // tracking tiles visited for events
             screen: 'title'
         };
 
@@ -45,10 +105,15 @@ class Game {
         const { mapWidth, mapHeight } = CONFIG;
         this.state.map = Array(mapHeight).fill(null).map(() => Array(mapWidth).fill(TILE_TYPES.WALL));
         this.state.visibility = Array(mapHeight).fill(null).map(() => Array(mapWidth).fill(0));
+        this.state.visited = Array(mapHeight).fill(null).map(() => Array(mapWidth).fill(false));
 
         // Simple random room generation or just a carver
         this.carveDungeon();
         this.placePlayer();
+
+        // Mark starting position as visited
+        this.state.visited[this.state.playerPos.y][this.state.playerPos.x] = true;
+
         this.placeItems();
         this.updateVisibility();
     }
@@ -111,7 +176,8 @@ class Game {
     }
 
     handleInput(e) {
-        if (this.state.screen !== 'game') return;
+        if (this.state.screen !== 'game' && this.state.screen !== 'event') return;
+        if (this.state.screen === 'event') return; // Block input during events
 
         let dx = 0, dy = 0;
         if (e.key === 'ArrowUp' || e.key === 'w') dy = -1;
@@ -132,6 +198,15 @@ class Game {
             const tile = this.state.map[nextY][nextX];
             if (tile !== TILE_TYPES.WALL) {
                 this.state.playerPos = { x: nextX, y: nextY };
+
+                // Event system check: trigger on new tiles (floor, gold, or trap)
+                const triggerableTiles = [TILE_TYPES.FLOOR, TILE_TYPES.GOLD, TILE_TYPES.TRAP];
+                if (triggerableTiles.includes(tile) && !this.state.visited[nextY][nextX]) {
+                    this.state.visited[nextY][nextX] = true;
+                    const randomEvent = EVENTS[Math.floor(Math.random() * EVENTS.length)];
+                    this.showEvent(randomEvent);
+                }
+
                 this.handleTileInteraction(tile, nextX, nextY);
                 this.updateVisibility();
                 this.render();
@@ -196,6 +271,53 @@ class Game {
         }
     }
 
+    showEvent(event) {
+        this.state.screen = 'event';
+        const modal = document.getElementById('event-modal');
+        const title = document.getElementById('event-title');
+        const desc = document.getElementById('event-description');
+        const choicesContainer = document.getElementById('event-choices');
+
+        title.textContent = event.title;
+        desc.textContent = event.description;
+        choicesContainer.innerHTML = '';
+
+        event.choices.forEach(choice => {
+            const btn = document.createElement('button');
+            btn.className = 'choice-button';
+            btn.textContent = choice.text;
+            btn.onclick = () => this.handleChoice(choice);
+            choicesContainer.appendChild(btn);
+        });
+
+        modal.classList.remove('hidden');
+    }
+
+    handleChoice(choice) {
+        // Apply effects
+        if (choice.effect) {
+            if (choice.effect.hp) this.state.hp += choice.effect.hp;
+            if (choice.effect.gold) this.state.gold += choice.effect.gold;
+            if (choice.effect.fear) this.state.fear += choice.effect.fear;
+            if (choice.effect.reputation) this.state.reputation += choice.effect.reputation;
+            if (choice.effect.dungeonPower) this.state.dungeonPower += choice.effect.dungeonPower;
+
+            // Clamp stats
+            this.state.hp = Math.max(0, Math.min(100, this.state.hp));
+            this.state.fear = Math.max(0, this.state.fear);
+        }
+
+        if (choice.log) {
+            this.log(choice.log);
+        }
+
+        // Close modal
+        document.getElementById('event-modal').classList.add('hidden');
+        this.state.screen = 'game';
+        this.render();
+        this.checkGameOver();
+    }
+
     log(msg) {
         const log = document.getElementById('message-log');
         const entry = document.createElement('div');
@@ -208,6 +330,9 @@ class Game {
         // Update UI
         document.getElementById('hp-value').textContent = this.state.hp;
         document.getElementById('gold-value').textContent = this.state.gold;
+        document.getElementById('fear-value').textContent = this.state.fear;
+        document.getElementById('rep-value').textContent = this.state.reputation;
+        document.getElementById('power-value').textContent = this.state.dungeonPower;
         document.getElementById('depth-value').textContent = this.state.depth;
 
         const container = document.getElementById('dungeon-container');
